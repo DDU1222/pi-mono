@@ -307,6 +307,31 @@ describe("totalTokens field", () => {
 	});
 
 	// =========================================================================
+	// AIHubMix
+	// =========================================================================
+
+	describe.skipIf(!process.env.AIHUBMIX_API_KEY)("AIHubMix", () => {
+		it(
+			"claude-sonnet-4-6 - should return totalTokens equal to sum of components",
+			{ retry: 3, timeout: 60000 },
+			async () => {
+				const llm = getModel("aihubmix", "claude-sonnet-4-6");
+
+				console.log(`\nAIHubMix / ${llm.id}:`);
+				const { first, second } = await testTotalTokensWithCache(llm, {
+					apiKey: process.env.AIHUBMIX_API_KEY,
+				});
+
+				logUsage("First request", first);
+				logUsage("Second request", second);
+
+				assertTotalTokensEqualsComponents(first);
+				assertTotalTokensEqualsComponents(second);
+			},
+		);
+	});
+
+	// =========================================================================
 	// Cloudflare Workers AI
 	// =========================================================================
 

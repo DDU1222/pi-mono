@@ -85,6 +85,33 @@ function getBedrockBaseUrl(modelId: string): string {
 		: "https://bedrock-runtime.us-east-1.amazonaws.com";
 }
 
+type AihubmixApi = "anthropic-messages" | "google-generative-ai" | "openai-responses" | "openai-completions";
+
+// -think / -search / no-think are AIHubMix virtual ids exposed only via the
+// OpenAI-compatible interface, so they fall through to openai-completions.
+function getAihubmixApi(modelId: string): AihubmixApi {
+	if (modelId.startsWith("claude") && !modelId.endsWith("-think") && !modelId.endsWith("-search")) {
+		return "anthropic-messages";
+	}
+	if (
+		(modelId.startsWith("gemini") || modelId.startsWith("imagen")) &&
+		!modelId.endsWith("no-think") &&
+		!modelId.endsWith("-search") &&
+		!modelId.includes("embedding")
+	) {
+		return "google-generative-ai";
+	}
+	if (/^(o\d|gpt-5|gpt-4\.\d)/.test(modelId)) return "openai-responses";
+	return "openai-completions";
+}
+
+// Anthropic SDK appends /v1/messages, so its root must omit /v1.
+function getAihubmixBaseUrl(api: AihubmixApi): string {
+	if (api === "google-generative-ai") return "https://aihubmix.com/gemini/v1beta";
+	if (api === "anthropic-messages") return "https://aihubmix.com";
+	return "https://aihubmix.com/v1";
+}
+
 async function fetchOpenRouterModels(): Promise<Model<any>[]> {
 	try {
 		console.log("Fetching models from OpenRouter API...");
@@ -208,6 +235,35 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 		const data = await response.json();
 
 		const models: Model<any>[] = [];
+
+		// Process AIHubMix models
+		if (data.aihubmix?.models) {
+			for (const [modelId, model] of Object.entries(data.aihubmix.models)) {
+				const m = model as ModelsDevModel;
+				if (m.tool_call !== true) continue;
+
+				const api = getAihubmixApi(modelId);
+				const baseUrl = getAihubmixBaseUrl(api);
+
+				models.push({
+					id: modelId,
+					name: m.name || modelId,
+					api,
+					provider: "aihubmix",
+					baseUrl,
+					reasoning: m.reasoning === true,
+					input: m.modalities?.input?.includes("image") ? ["text", "image"] : ["text"],
+					cost: {
+						input: m.cost?.input || 0,
+						output: m.cost?.output || 0,
+						cacheRead: m.cost?.cache_read || 0,
+						cacheWrite: m.cost?.cache_write || 0,
+					},
+					contextWindow: m.limit?.context || 4096,
+					maxTokens: m.limit?.output || 4096,
+				});
+			}
+		}
 
 		// Process Amazon Bedrock models
 		if (data["amazon-bedrock"]?.models) {

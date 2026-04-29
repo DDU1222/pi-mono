@@ -168,6 +168,14 @@ describe("Tool Call Without Result Tests", () => {
 		});
 	});
 
+	describe.skipIf(!process.env.AIHUBMIX_API_KEY)("AIHubMix Provider", () => {
+		const model = getModel("aihubmix", "claude-sonnet-4-6");
+
+		it("should filter out tool calls without corresponding tool results", { retry: 3, timeout: 30000 }, async () => {
+			await testToolCallWithoutResult(model);
+		});
+	});
+
 	describe.skipIf(!process.env.CLOUDFLARE_API_KEY || !process.env.CLOUDFLARE_ACCOUNT_ID)(
 		"Cloudflare Workers AI Provider",
 		() => {
