@@ -66,6 +66,7 @@ Unified LLM API with automatic model discovery, provider configuration, token an
 - **Google Gemini CLI** (requires OAuth, see below)
 - **Antigravity** (requires OAuth, see below)
 - **Amazon Bedrock**
+- **AIHubMix** (multi-route gateway: routes claude*/gemini*/openai-* models to native upstream APIs)
 - **OpenCode Zen**
 - **OpenCode Go**
 - **Fireworks** (uses Anthropic-compatible API)
@@ -1030,6 +1031,7 @@ In Node.js environments, you can set environment variables to avoid passing API 
 | Groq | `GROQ_API_KEY` |
 | Cerebras | `CEREBRAS_API_KEY` |
 | Cloudflare Workers AI | `CLOUDFLARE_API_KEY` + `CLOUDFLARE_ACCOUNT_ID` |
+| AIHubMix | `AIHUBMIX_API_KEY` |
 | xAI | `XAI_API_KEY` |
 | Fireworks | `FIREWORKS_API_KEY` |
 | OpenRouter | `OPENROUTER_API_KEY` |

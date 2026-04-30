@@ -616,6 +616,33 @@ describe("Generate E2E Tests", () => {
 		});
 	});
 
+	describe.skipIf(!process.env.AIHUBMIX_API_KEY)(
+		"AIHubMix Provider (Claude Sonnet 4.6 via Anthropic Messages)",
+		() => {
+			const llm = getModel("aihubmix", "claude-sonnet-4-6");
+
+			it("should complete basic text generation", { retry: 3 }, async () => {
+				await basicTextGeneration(llm);
+			});
+
+			it("should handle tool calling", { retry: 3 }, async () => {
+				await handleToolCall(llm);
+			});
+
+			it("should handle streaming", { retry: 3 }, async () => {
+				await handleStreaming(llm);
+			});
+
+			it("should handle thinking mode", { retry: 3 }, async () => {
+				await handleThinking(llm, { thinkingEnabled: true, effort: "medium" });
+			});
+
+			it("should handle multi-turn with thinking and tools", { retry: 3 }, async () => {
+				await multiTurn(llm, { thinkingEnabled: true, effort: "medium" });
+			});
+		},
+	);
+
 	describe.skipIf(!process.env.CLOUDFLARE_API_KEY || !process.env.CLOUDFLARE_ACCOUNT_ID)(
 		"Cloudflare Workers AI Provider (Kimi K2.6 via OpenAI Completions)",
 		() => {

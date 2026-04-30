@@ -17,6 +17,7 @@ export type KnownApi =
 export type Api = KnownApi | (string & {});
 
 export type KnownProvider =
+	| "aihubmix"
 	| "amazon-bedrock"
 	| "anthropic"
 	| "google"
